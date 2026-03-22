@@ -3,6 +3,7 @@
 import pytest
 import json
 import time
+from pathlib import Path
 from unittest.mock import Mock, patch
 from src.utils.baywheels import BayWheelsSource, STATION_STATUS_URL
 
@@ -936,4 +937,78 @@ class TestBayWheelsPluginClass:
         plugin._config = {}
         lines = plugin.get_formatted_display()
         assert lines is None
+
+
+MANIFEST_PATH = Path(__file__).resolve().parent.parent / "manifest.json"
+
+REQUIRED_SIMPLE_FIELDS = {"description", "type", "max_length", "group", "example"}
+VALID_VAR_TYPES = {"string", "number", "boolean"}
+
+
+class TestManifestMetadata:
+    """Validate rich variable metadata in manifest.json."""
+
+    @pytest.fixture(autouse=True)
+    def load_manifest(self):
+        with open(MANIFEST_PATH) as f:
+            self.manifest = json.load(f)
+        self.variables = self.manifest["variables"]
+
+    def test_manifest_has_required_top_level_fields(self):
+        for field in ("id", "name", "version", "variables"):
+            assert field in self.manifest, f"Missing top-level field: {field}"
+
+    def test_simple_variables_are_dict(self):
+        assert isinstance(self.variables["simple"], dict), (
+            "variables.simple must be a dict, not a list"
+        )
+
+    def test_groups_defined(self):
+        groups = self.variables.get("groups", {})
+        assert len(groups) > 0, "variables.groups must define at least one group"
+        for gid, gdef in groups.items():
+            assert "label" in gdef, f"Group '{gid}' missing 'label'"
+
+    def test_simple_vars_have_required_fields(self):
+        for var_name, meta in self.variables["simple"].items():
+            for field in REQUIRED_SIMPLE_FIELDS:
+                assert field in meta, (
+                    f"Variable '{var_name}' missing required field '{field}'"
+                )
+
+    def test_simple_vars_reference_valid_groups(self):
+        groups = set(self.variables.get("groups", {}).keys())
+        for var_name, meta in self.variables["simple"].items():
+            assert meta["group"] in groups, (
+                f"Variable '{var_name}' references unknown group '{meta['group']}'"
+            )
+
+    def test_simple_vars_have_valid_types(self):
+        for var_name, meta in self.variables["simple"].items():
+            assert meta["type"] in VALID_VAR_TYPES, (
+                f"Variable '{var_name}' has invalid type '{meta['type']}'"
+            )
+
+    def test_max_length_is_positive_int(self):
+        for var_name, meta in self.variables["simple"].items():
+            ml = meta["max_length"]
+            assert isinstance(ml, int) and ml > 0, (
+                f"Variable '{var_name}' max_length must be a positive int, got {ml}"
+            )
+
+    def test_arrays_section_exists(self):
+        assert "arrays" in self.variables
+        assert "stations" in self.variables["arrays"]
+
+    def test_stations_array_has_label_and_fields(self):
+        stations = self.variables["arrays"]["stations"]
+        assert "label_field" in stations
+        assert "item_fields" in stations
+        assert len(stations["item_fields"]) > 0
+
+    def test_example_values_non_empty(self):
+        for var_name, meta in self.variables["simple"].items():
+            assert len(str(meta["example"])) > 0, (
+                f"Variable '{var_name}' has empty example"
+            )
 
