@@ -132,7 +132,7 @@ Total across all configured stations:
 
 ## Example Templates
 
-![Bay Wheels Display](./baywheels-display.png)
+![Bay Wheels Display](./board-display.png)
 
 ### Simple Single Station
 
