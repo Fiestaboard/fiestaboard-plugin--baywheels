@@ -1,7 +1,7 @@
 {
   "id": "baywheels",
   "name": "Bay Wheels",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Display Bay Wheels bike share availability with electric and classic bike counts",
   "author": "FiestaBoard Team",
   "repository": "https://github.com/Fiestaboard/fiestaboard-plugin--baywheels",
@@ -207,5 +207,43 @@
       "caption": "Display Bay Wheels bike share availability with electric and classic bike counts",
       "primary": true
     }
-  ]
+  ],
+  "demo": {
+    "name": "Bay Wheels Demo",
+    "device_type": "flagship",
+    "template": [
+      "Bay Wheels",
+      "{{baywheels.station_name}}",
+      "E-Bikes {{baywheels.electric_bikes}}",
+      "Classic {{baywheels.classic_bikes}}",
+      "Total {{baywheels.num_bikes_available}}",
+      "Stations {{baywheels.station_count}}"
+    ],
+    "line_metadata": [
+      {
+        "alignment": "center",
+        "wrap": false
+      },
+      {
+        "alignment": "center",
+        "wrap": false
+      },
+      {
+        "alignment": "left",
+        "wrap": false
+      },
+      {
+        "alignment": "left",
+        "wrap": false
+      },
+      {
+        "alignment": "left",
+        "wrap": false
+      },
+      {
+        "alignment": "center",
+        "wrap": false
+      }
+    ]
+  }
 }
